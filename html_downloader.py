@@ -7,6 +7,6 @@ class HtmlDownloader(object):
     def download(self, url,decoding='gbk',encoding='utf-8'):
         if url is None:
             return None
-        html=requests.get(url)
+        html=requests.get(url,timeout=10)
         html=html.content.decode(decoding)
         return html
