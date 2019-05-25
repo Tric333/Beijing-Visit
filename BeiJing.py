@@ -57,12 +57,11 @@ def parse_place(soup):
                 ret['time'] = None
     return ret
 
-if __name__ == '__main__':
+def getsourcedata():
     data = analyseDoc()
     obj_spider = SpiderMain()
     dir = open('source.txt','w+',encoding='utf-8')
-    error_dir = open('error_source.txt','w+',encoding='utf-8')
-    max_repeat = 10
+    max_repeat = 4
     for i in data:
         repeat = 0
         while repeat < max_repeat:
@@ -75,11 +74,11 @@ if __name__ == '__main__':
                 break
             except :
                 repeat+=1
-                print('repeat {}'.format(repeat))
-                print(html_cont)
-                print(i)
-            if repeat == max_repeat:
-                print('error_source record')
-                error_dir.write(str(i)+'\n')
+                print('repeat {} \n{}\n{}'.format(repeat,html_cont,i))
+            if repeat == max_repeat:#超过max_repeat获取失败认为没有读取到关键字，写入None
+                i['opentime'], i['time']  = None, None
+                dir.write(str(i)+'\n')
     dir.close()
-    error_dir.close()
+
+if __name__ == '__main__':
+    pass
