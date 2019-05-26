@@ -1,5 +1,7 @@
 import html_downloader,html_parser#,url_manager,html_outputer
 import re
+# import numpy as np
+# import pandas as pd
 
 class SpiderMain(object):
     def __init__(self):
@@ -9,8 +11,8 @@ class SpiderMain(object):
         #self.outputer=html_outputer.HtmlOutputer()#输出获取到的内容
 
 def analyseDoc():
-    f = open('data.txt','r',encoding='utf-8')
-    d = open('pre_data.txt', 'w+',encoding='utf-8')
+    f = open('web_data.txt','r',encoding='utf-8')
+    d = open('data.txt', 'w+',encoding='utf-8')
     node = []
     for i in f.readlines():
         try:
@@ -79,6 +81,79 @@ def getsourcedata():
                 i['opentime'], i['time']  = None, None
                 dir.write(str(i)+'\n')
     dir.close()
+def landmark_outbox_pre(data):
+    for i in data:
+        dis = i['landmark_outbox']
+        if 'km' in dis:
+            i['landmark_outbox'] = float(dis.replace('km',''))
+        elif 'm' in dis:
+            i['landmark_outbox'] = float(dis.replace('m',''))/1000
+        else:
+            print(dis)
+def time_pre(data):
+    for i in data:
+        time_raw = i['time']
+        if '天' in time_raw:
+            a = time_raw.replace('天','').split('-')
+            temp = 0
+            for _ in a:
+                temp += float(_)*8*60
+            i['time'] = temp/len(a)
+        elif '小时' in time_raw:
+            a = time_raw.replace('小时','').split('-')
+            temp = 0
+            for _ in a:
+                temp+=float(_)*60
+            i['time'] = int(temp/len(a))
+        elif '分钟' in time_raw:
+            a = time_raw.replace('分钟','').split('-')
+            temp = 0
+            for _ in a:
+                temp+=float(_)
+            i['time'] = int(temp/len(a))
+        elif time_raw == '0':
+            i['time'] = 0
+
+def comment_count_pre(data):
+    for i in data:
+        if '万' in i['comment_count']:
+            i['comment_count'] = int(float(i['comment_count'].replace('万',''))*10000)
+        else:
+            i['comment_count'] = int(i['comment_count'])
+    return
+
+def comment_score_pre(data):
+    for i in data:
+        i['comment_score'] = float(i['comment_score'])
+    return
+
+def preprocessdata(data):
+    landmark_outbox_pre(data)
+    time_pre(data)
+    comment_count_pre(data)
+    comment_score_pre(data)
+    return
+
+def filterdata(data):
+    res = []
+    for i in data:
+        if i['comment_score'] < 4.5 or \
+            i['comment_count'] < 100 or \
+            i['landmark_outbox'] >200 or \
+            i['time'] == 0:
+            continue
+        res.append(i)
+        print(i)
+    return res
 
 if __name__ == '__main__':
-    pass
+    f = open('source.txt','r',encoding='utf-8')
+    data = []
+    for i in f.readlines():
+        data.append(eval(i))
+    preprocessdata(data)
+    ret = filterdata(data)
+    d = open('pre_date.txt','w+',encoding='utf-8')
+    for i in ret:
+        d.write(str(i)+'\n')
+    d.close()
